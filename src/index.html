@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+  <title>Floating Todo</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="titlebar">
+    <div class="drag-region"></div>
+    <div class="controls">
+      <button id="opacity-btn" title="Adjust opacity">◐</button>
+      <button id="minimize-btn" title="Minimize">−</button>
+      <button id="close-btn" title="Hide (click tray icon to bring back)">×</button>
+    </div>
+  </div>
+
+  <div class="opacity-panel" id="opacity-panel">
+    <label>Opacity</label>
+    <input type="range" id="opacity-slider" min="0.4" max="1" step="0.05" value="0.95">
+  </div>
+
+  <div class="panels">
+    <!-- Today panel -->
+    <div class="panel active" id="today-panel">
+      <div class="header">
+        <h1 id="date-title"></h1>
+        <span class="counter" id="counter">0 tasks</span>
+      </div>
+      <ul id="task-list" class="task-list"></ul>
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">✨</div>
+        <p>Nothing on your plate.</p>
+        <p class="empty-sub">Type a task below to get started.</p>
+      </div>
+      <div class="input-row">
+        <span class="input-checkbox"></span>
+        <input type="text" id="task-input" placeholder="New task..." maxlength="200" autocomplete="off">
+      </div>
+    </div>
+
+    <!-- History panel -->
+    <div class="panel" id="history-panel">
+      <div id="history-list"></div>
+      <div class="empty-state" id="history-empty">
+        <div class="empty-icon">🎯</div>
+        <p>No completed tasks yet.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab active" id="tab-today">Today</button>
+    <button class="tab" id="tab-history">History</button>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

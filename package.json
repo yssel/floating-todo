@@ -1,0 +1,21 @@
+{
+  "name": "floating-todo",
+  "version": "1.0.0",
+  "description": "A floating, always-on-top sticky note style to-do list for macOS",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "package-mac": "electron-packager . FloatingTodo --platform=darwin --arch=arm64 --icon=assets/icon.icns --overwrite",
+    "package-mac-intel": "electron-packager . FloatingTodo --platform=darwin --arch=x64 --icon=assets/icon.icns --overwrite"
+  },
+  "keywords": ["todo", "sticky-notes", "floating", "macos"],
+  "author": "You",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0"
+  }
+}
