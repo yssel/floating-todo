@@ -2,6 +2,12 @@
 
 A sticky-note style to-do list for macOS that floats above all your windows — even fullscreen apps.
 
+
+<img width="320" height="464" alt="image" src="https://github.com/user-attachments/assets/3f04099b-3869-42a6-b53c-380ac621a1eb" />  <img width="320" height="464" alt="image" src="https://github.com/user-attachments/assets/c0e493d8-36c9-406f-ba54-7d88cab85d97" /> <img width="320" height="464" alt="image" src="https://github.com/user-attachments/assets/149c9aca-ceed-4da6-8221-64def138156f" /> <img width="320" height="464" alt="image" src="https://github.com/user-attachments/assets/db892075-054b-4e57-9b81-567e589834f2" /><img width="320" height="464" alt="image" src="https://github.com/user-attachments/assets/911ae83c-c13c-4e9c-b035-bd6f8774e780" />
+
+## Demo
+https://github.com/user-attachments/assets/c8784402-4d18-414d-a3c4-06c52faa3a8b
+
 ## Features
 
 - 📌 **Always on top** — floats over every window, including fullscreen
