@@ -63,10 +63,8 @@ function createWindow() {
 }
 
 function createTray() {
-  // Tiny menubar icon — lets you toggle the window if you accidentally hide it
-  const icon = nativeImage.createFromDataURL(
-    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAaUlEQVQ4jWNgGAWjYBSMAjLAfwy8/z8GxoYZGGiCgJg/EAtigf8GxAJ4DEAJgYGoBnAxsBjAxcBiABcDiwFcDCwGcDGwGMDFwGIAFwOLAVwMLAZwMbAYwMXAYgAXA4sBXAwsBgYHAAAvKAv9MTGfYwAAAABJRU5ErkJggg=='
-  );
+  const trayIconPath = path.join(__dirname, '..', 'assets', 'tray-icon.png');
+  const icon = nativeImage.createFromPath(trayIconPath).resize({ width: 16, height: 16 });
   tray = new Tray(icon);
   tray.setToolTip('Floating Todo');
 
@@ -113,6 +111,11 @@ ipcMain.handle('minimize-window', () => {
 // ---- App lifecycle ----
 
 app.whenReady().then(() => {
+  // Set dock icon (macOS)
+  if (process.platform === 'darwin') {
+    app.dock.setIcon(path.join(__dirname, '..', 'assets', 'icon.png'));
+  }
+
   createWindow();
   createTray();
 
