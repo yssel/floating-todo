@@ -17,8 +17,20 @@
   </div>
 
   <div class="opacity-panel" id="opacity-panel">
-    <label>Opacity</label>
-    <input type="range" id="opacity-slider" min="0.4" max="1" step="0.05" value="0.95">
+    <div class="settings-row">
+      <label>Opacity</label>
+      <input type="range" id="opacity-slider" min="0.4" max="1" step="0.05" value="0.95">
+    </div>
+    <div class="settings-row">
+      <label>Theme</label>
+      <div class="theme-swatches" id="theme-swatches">
+        <button class="theme-swatch active" data-theme="yellow" title="Yellow"></button>
+        <button class="theme-swatch" data-theme="blue" title="Blue"></button>
+        <button class="theme-swatch" data-theme="green" title="Green"></button>
+        <button class="theme-swatch" data-theme="purple" title="Purple"></button>
+        <button class="theme-swatch" data-theme="brown" title="Light Brown"></button>
+      </div>
+    </div>
   </div>
 
   <div class="panels">

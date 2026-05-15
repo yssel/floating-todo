@@ -20,6 +20,7 @@ const tabToday = document.getElementById('tab-today');
 const tabHistory = document.getElementById('tab-history');
 const todayPanel = document.getElementById('today-panel');
 const historyPanel = document.getElementById('history-panel');
+const themeSwatchEls = document.querySelectorAll('.theme-swatch');
 
 // ---- Date title ----
 function updateDateTitle() {
@@ -30,11 +31,19 @@ document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') updateDateTitle();
 });
 
+// ---- Theme ----
+function applyTheme(theme) {
+  document.body.dataset.theme = theme === 'yellow' ? '' : theme;
+  themeSwatchEls.forEach(s => s.classList.toggle('active', s.dataset.theme === theme));
+  localStorage.setItem('theme', theme);
+}
+
 // ---- Init ----
 async function init() {
   todos = (await window.api.getTodos()) || [];
   const opacity = await window.api.getOpacity();
   opacitySlider.value = opacity;
+  applyTheme(localStorage.getItem('theme') || 'yellow');
   render();
 }
 
@@ -277,6 +286,10 @@ opacityBtn.addEventListener('click', () => {
 
 opacitySlider.addEventListener('input', (e) => {
   window.api.setOpacity(parseFloat(e.target.value));
+});
+
+themeSwatchEls.forEach(swatch => {
+  swatch.addEventListener('click', () => applyTheme(swatch.dataset.theme));
 });
 
 document.addEventListener('keydown', (e) => {
