@@ -22,7 +22,13 @@ const todayPanel = document.getElementById('today-panel');
 const historyPanel = document.getElementById('history-panel');
 
 // ---- Date title ----
-dateTitle.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+function updateDateTitle() {
+  dateTitle.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+updateDateTitle();
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') updateDateTitle();
+});
 
 // ---- Init ----
 async function init() {
