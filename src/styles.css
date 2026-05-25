@@ -372,7 +372,7 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 4px 10px;
+  padding: 4px 0;
   border-radius: 6px;
   font-size: 13px;
   line-height: 1.4;
@@ -483,4 +483,52 @@ body {
   font-size: 11px !important;
   margin-top: 2px;
   opacity: 0.7;
+}
+
+/* ---- Drag and drop ---- */
+.drag-handle {
+  flex-shrink: 0;
+  width: 8px;
+  margin-right: -8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0;
+  cursor: grab;
+  transition: opacity 0.15s ease;
+  text-align: center;
+  line-height: 1;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.task-item:hover .drag-handle {
+  opacity: 0.4;
+}
+
+.drag-handle:hover {
+  opacity: 0.75 !important;
+}
+
+.task-item.dragging {
+  opacity: 0.35;
+}
+
+.task-item.drag-over {
+  position: relative;
+}
+
+.task-item.drag-over::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 1px;
+  pointer-events: none;
+}
+
+.task-list.no-animate .task-item {
+  animation: none;
 }

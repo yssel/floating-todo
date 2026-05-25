@@ -1,41 +1,45 @@
 // ---- State ----
 let todos = [];
-let activeTab = 'today';
+let activeTab = "today";
 const collapsedDates = new Set();
+let dragSrcId = null;
 
 // ---- DOM refs ----
-const taskInput = document.getElementById('task-input');
-const taskList = document.getElementById('task-list');
-const counter = document.getElementById('counter');
-const emptyState = document.getElementById('empty-state');
-const historyListEl = document.getElementById('history-list');
-const historyEmpty = document.getElementById('history-empty');
-const dateTitle = document.getElementById('date-title');
-const closeBtn = document.getElementById('close-btn');
-const minimizeBtn = document.getElementById('minimize-btn');
-const opacityBtn = document.getElementById('opacity-btn');
-const opacityPanel = document.getElementById('opacity-panel');
-const opacitySlider = document.getElementById('opacity-slider');
-const tabToday = document.getElementById('tab-today');
-const tabHistory = document.getElementById('tab-history');
-const todayPanel = document.getElementById('today-panel');
-const historyPanel = document.getElementById('history-panel');
-const themeSwatchEls = document.querySelectorAll('.theme-swatch');
+const taskInput = document.getElementById("task-input");
+const taskList = document.getElementById("task-list");
+const counter = document.getElementById("counter");
+const emptyState = document.getElementById("empty-state");
+const historyListEl = document.getElementById("history-list");
+const historyEmpty = document.getElementById("history-empty");
+const dateTitle = document.getElementById("date-title");
+const closeBtn = document.getElementById("close-btn");
+const minimizeBtn = document.getElementById("minimize-btn");
+const opacityBtn = document.getElementById("opacity-btn");
+const opacityPanel = document.getElementById("opacity-panel");
+const opacitySlider = document.getElementById("opacity-slider");
+const tabToday = document.getElementById("tab-today");
+const tabHistory = document.getElementById("tab-history");
+const todayPanel = document.getElementById("today-panel");
+const historyPanel = document.getElementById("history-panel");
+const themeSwatchEls = document.querySelectorAll(".theme-swatch");
 
 // ---- Date title ----
 function updateDateTitle() {
-  dateTitle.textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const title = `🎯 ${new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}`;
+  dateTitle.textContent = title;
 }
 updateDateTitle();
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') updateDateTitle();
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") updateDateTitle();
 });
 
 // ---- Theme ----
 function applyTheme(theme) {
-  document.body.dataset.theme = theme === 'yellow' ? '' : theme;
-  themeSwatchEls.forEach(s => s.classList.toggle('active', s.dataset.theme === theme));
-  localStorage.setItem('theme', theme);
+  document.body.dataset.theme = theme === "yellow" ? "" : theme;
+  themeSwatchEls.forEach((s) =>
+    s.classList.toggle("active", s.dataset.theme === theme),
+  );
+  localStorage.setItem("theme", theme);
 }
 
 // ---- Init ----
@@ -43,7 +47,7 @@ async function init() {
   todos = (await window.api.getTodos()) || [];
   const opacity = await window.api.getOpacity();
   opacitySlider.value = opacity;
-  applyTheme(localStorage.getItem('theme') || 'yellow');
+  applyTheme(localStorage.getItem("theme") || "yellow");
   render();
 }
 
@@ -56,67 +60,115 @@ function startOfToday() {
 
 // ---- Render: today tab (active + completed-today todos) ----
 function render() {
-  taskList.innerHTML = '';
+  taskList.innerHTML = "";
   const todayStart = startOfToday();
-  const todayItems = todos.filter(t => !t.done || (t.completedAt >= todayStart));
+  const todayItems = todos.filter(
+    (t) => !t.done || t.completedAt >= todayStart,
+  );
 
   if (todayItems.length === 0) {
-    emptyState.classList.add('visible');
-    taskList.style.display = 'none';
+    emptyState.classList.add("visible");
+    taskList.style.display = "none";
   } else {
-    emptyState.classList.remove('visible');
-    taskList.style.display = 'flex';
+    emptyState.classList.remove("visible");
+    taskList.style.display = "flex";
 
     todayItems.forEach((todo) => {
-      const li = document.createElement('li');
-      li.className = 'task-item' + (todo.done ? ' done' : '');
+      const li = document.createElement("li");
+      li.className = "task-item" + (todo.done ? " done" : "");
       li.dataset.id = todo.id;
 
-      const checkbox = document.createElement('button');
-      checkbox.className = 'task-checkbox';
-      checkbox.setAttribute('aria-label', todo.done ? 'Mark as not done' : 'Mark as done');
-      checkbox.addEventListener('click', () => toggleTodo(todo.id));
+      const checkbox = document.createElement("button");
+      checkbox.className = "task-checkbox";
+      checkbox.setAttribute(
+        "aria-label",
+        todo.done ? "Mark as not done" : "Mark as done",
+      );
+      checkbox.addEventListener("click", () => toggleTodo(todo.id));
 
-      const text = document.createElement('span');
-      text.className = 'task-text';
+      const text = document.createElement("span");
+      text.className = "task-text";
       text.textContent = todo.text;
-      if (!todo.done) text.addEventListener('dblclick', () => editTodo(todo.id, text));
+      if (!todo.done)
+        text.addEventListener("dblclick", () => editTodo(todo.id, text));
 
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'task-delete';
-      deleteBtn.textContent = '×';
-      deleteBtn.setAttribute('aria-label', 'Delete task');
-      deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "task-delete";
+      deleteBtn.textContent = "×";
+      deleteBtn.setAttribute("aria-label", "Delete task");
+      deleteBtn.addEventListener("click", () => deleteTodo(todo.id));
 
-      li.append(checkbox, text, deleteBtn);
+      const handle = document.createElement("span");
+      handle.className = "drag-handle";
+      handle.textContent = "⠿";
+      handle.setAttribute("aria-hidden", "true");
+
+      li.draggable = true;
+      li.addEventListener("dragstart", (e) => {
+        dragSrcId = todo.id;
+        e.dataTransfer.effectAllowed = "move";
+        requestAnimationFrame(() => li.classList.add("dragging"));
+      });
+      li.addEventListener("dragend", () => {
+        li.classList.remove("dragging");
+        document
+          .querySelectorAll(".task-item.drag-over")
+          .forEach((el) => el.classList.remove("drag-over"));
+        dragSrcId = null;
+      });
+      li.addEventListener("dragover", (e) => {
+        if (!dragSrcId || dragSrcId === todo.id) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        if (!li.classList.contains("drag-over")) {
+          document
+            .querySelectorAll(".task-item.drag-over")
+            .forEach((el) => el.classList.remove("drag-over"));
+          li.classList.add("drag-over");
+        }
+      });
+      li.addEventListener("dragleave", (e) => {
+        if (!li.contains(e.relatedTarget)) li.classList.remove("drag-over");
+      });
+      li.addEventListener("drop", (e) => {
+        e.preventDefault();
+        li.classList.remove("drag-over");
+        if (dragSrcId && dragSrcId !== todo.id) reorderTodo(dragSrcId, todo.id);
+      });
+
+      li.append(handle, checkbox, text, deleteBtn);
       taskList.appendChild(li);
     });
   }
 
-  const active = todos.filter(t => !t.done);
+  const active = todos.filter((t) => !t.done);
   const count = active.length;
   const total = todos.length;
-  if (total === 0) counter.textContent = '0 tasks';
-  else if (count === 0) counter.textContent = 'all done! 🎉';
-  else counter.textContent = `${count} task${count === 1 ? '' : 's'}`;
+  if (total === 0) counter.textContent = "0 tasks";
+  else if (count === 0) counter.textContent = "all done! 🎉";
+  else counter.textContent = `${count} task${count === 1 ? "" : "s"}`;
 }
 
 // ---- Render: history tab (completed todos grouped by date) ----
 function renderHistory() {
-  historyListEl.innerHTML = '';
+  historyListEl.innerHTML = "";
   const todayStart = startOfToday();
-  const done = todos.filter(t => t.done && t.completedAt < todayStart);
+  const done = todos.filter((t) => t.done && t.completedAt < todayStart);
 
   if (done.length === 0) {
-    historyEmpty.classList.add('visible');
+    historyEmpty.classList.add("visible");
     return;
   }
-  historyEmpty.classList.remove('visible');
+  historyEmpty.classList.remove("visible");
 
   const groups = new Map();
-  done.forEach(t => {
+  done.forEach((t) => {
     const ts = t.completedAt || t.createdAt;
-    const key = new Date(ts).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+    const key = new Date(ts).toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
     if (!groups.has(key)) groups.set(key, { ts, items: [] });
     groups.get(key).items.push(t);
   });
@@ -124,47 +176,48 @@ function renderHistory() {
   const sorted = [...groups.entries()].sort((a, b) => b[1].ts - a[1].ts);
 
   sorted.forEach(([dateKey, { items }]) => {
-    const group = document.createElement('div');
-    group.className = 'date-group' + (collapsedDates.has(dateKey) ? ' collapsed' : '');
+    const group = document.createElement("div");
+    group.className =
+      "date-group" + (collapsedDates.has(dateKey) ? " collapsed" : "");
 
-    const header = document.createElement('div');
-    header.className = 'date-group-header';
+    const header = document.createElement("div");
+    header.className = "date-group-header";
 
-    const label = document.createElement('span');
+    const label = document.createElement("span");
     label.textContent = dateKey;
 
-    const toggle = document.createElement('span');
-    toggle.className = 'date-group-toggle';
-    toggle.textContent = '▾';
+    const toggle = document.createElement("span");
+    toggle.className = "date-group-toggle";
+    toggle.textContent = "▾";
 
     header.append(label, toggle);
-    header.addEventListener('click', () => {
+    header.addEventListener("click", () => {
       if (collapsedDates.has(dateKey)) collapsedDates.delete(dateKey);
       else collapsedDates.add(dateKey);
-      group.classList.toggle('collapsed');
+      group.classList.toggle("collapsed");
     });
 
-    const itemsEl = document.createElement('ul');
-    itemsEl.className = 'date-group-items task-list';
+    const itemsEl = document.createElement("ul");
+    itemsEl.className = "date-group-items task-list";
 
-    items.forEach(todo => {
-      const li = document.createElement('li');
-      li.className = 'task-item done';
+    items.forEach((todo) => {
+      const li = document.createElement("li");
+      li.className = "task-item done";
 
-      const checkbox = document.createElement('button');
-      checkbox.className = 'task-checkbox';
-      checkbox.setAttribute('aria-label', 'Mark as not done');
-      checkbox.addEventListener('click', () => toggleTodo(todo.id));
+      const checkbox = document.createElement("button");
+      checkbox.className = "task-checkbox";
+      checkbox.setAttribute("aria-label", "Mark as not done");
+      checkbox.addEventListener("click", () => toggleTodo(todo.id));
 
-      const text = document.createElement('span');
-      text.className = 'task-text';
+      const text = document.createElement("span");
+      text.className = "task-text";
       text.textContent = todo.text;
 
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'task-delete';
-      deleteBtn.textContent = '×';
-      deleteBtn.setAttribute('aria-label', 'Delete task');
-      deleteBtn.addEventListener('click', () => deleteTodo(todo.id));
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "task-delete";
+      deleteBtn.textContent = "×";
+      deleteBtn.setAttribute("aria-label", "Delete task");
+      deleteBtn.addEventListener("click", () => deleteTodo(todo.id));
 
       li.append(checkbox, text, deleteBtn);
       itemsEl.appendChild(li);
@@ -178,17 +231,17 @@ function renderHistory() {
 // ---- Tab switching ----
 function switchTab(tab) {
   activeTab = tab;
-  if (tab === 'today') {
-    todayPanel.classList.add('active');
-    historyPanel.classList.remove('active');
-    tabToday.classList.add('active');
-    tabHistory.classList.remove('active');
+  if (tab === "today") {
+    todayPanel.classList.add("active");
+    historyPanel.classList.remove("active");
+    tabToday.classList.add("active");
+    tabHistory.classList.remove("active");
     render();
   } else {
-    historyPanel.classList.add('active');
-    todayPanel.classList.remove('active');
-    tabHistory.classList.add('active');
-    tabToday.classList.remove('active');
+    historyPanel.classList.add("active");
+    todayPanel.classList.remove("active");
+    tabHistory.classList.add("active");
+    tabToday.classList.remove("active");
     renderHistory();
   }
 }
@@ -202,36 +255,50 @@ function addTodo(text) {
     text: trimmed,
     done: false,
     createdAt: Date.now(),
-    completedAt: null
+    completedAt: null,
   });
   save();
   render();
 }
 
 function toggleTodo(id) {
-  const todo = todos.find(t => t.id === id);
+  const todo = todos.find((t) => t.id === id);
   if (todo) {
     todo.done = !todo.done;
     todo.completedAt = todo.done ? Date.now() : null;
     save();
     render();
-    if (activeTab === 'history') renderHistory();
+    if (activeTab === "history") renderHistory();
   }
 }
 
 function deleteTodo(id) {
-  todos = todos.filter(t => t.id !== id);
+  todos = todos.filter((t) => t.id !== id);
   save();
   render();
-  if (activeTab === 'history') renderHistory();
+  if (activeTab === "history") renderHistory();
+}
+
+function reorderTodo(srcId, targetId) {
+  const srcIdx = todos.findIndex((t) => t.id === srcId);
+  const targetIdx = todos.findIndex((t) => t.id === targetId);
+  if (srcIdx === -1 || targetIdx === -1 || srcIdx === targetIdx) return;
+  const movingDown = srcIdx < targetIdx;
+  const [item] = todos.splice(srcIdx, 1);
+  const newTargetIdx = todos.findIndex((t) => t.id === targetId);
+  todos.splice(movingDown ? newTargetIdx + 1 : newTargetIdx, 0, item);
+  save();
+  taskList.classList.add("no-animate");
+  render();
+  requestAnimationFrame(() => taskList.classList.remove("no-animate"));
 }
 
 function editTodo(id, textEl) {
-  const todo = todos.find(t => t.id === id);
+  const todo = todos.find((t) => t.id === id);
   if (!todo) return;
 
-  const input = document.createElement('input');
-  input.type = 'text';
+  const input = document.createElement("input");
+  input.type = "text";
   input.value = todo.text;
   input.maxLength = 200;
   input.style.cssText = `
@@ -255,10 +322,13 @@ function editTodo(id, textEl) {
     render();
   };
 
-  input.addEventListener('blur', commit);
-  input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') input.blur();
-    if (e.key === 'Escape') { input.value = todo.text; input.blur(); }
+  input.addEventListener("blur", commit);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") input.blur();
+    if (e.key === "Escape") {
+      input.value = todo.text;
+      input.blur();
+    }
   });
 }
 
@@ -267,35 +337,35 @@ function save() {
 }
 
 // ---- Event listeners ----
-taskInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') {
+taskInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
     addTodo(taskInput.value);
-    taskInput.value = '';
+    taskInput.value = "";
   }
 });
 
-tabToday.addEventListener('click', () => switchTab('today'));
-tabHistory.addEventListener('click', () => switchTab('history'));
+tabToday.addEventListener("click", () => switchTab("today"));
+tabHistory.addEventListener("click", () => switchTab("history"));
 
-closeBtn.addEventListener('click', () => window.api.closeWindow());
-minimizeBtn.addEventListener('click', () => window.api.minimizeWindow());
+closeBtn.addEventListener("click", () => window.api.closeWindow());
+minimizeBtn.addEventListener("click", () => window.api.minimizeWindow());
 
-opacityBtn.addEventListener('click', () => {
-  opacityPanel.classList.toggle('visible');
+opacityBtn.addEventListener("click", () => {
+  opacityPanel.classList.toggle("visible");
 });
 
-opacitySlider.addEventListener('input', (e) => {
+opacitySlider.addEventListener("input", (e) => {
   window.api.setOpacity(parseFloat(e.target.value));
 });
 
-themeSwatchEls.forEach(swatch => {
-  swatch.addEventListener('click', () => applyTheme(swatch.dataset.theme));
+themeSwatchEls.forEach((swatch) => {
+  swatch.addEventListener("click", () => applyTheme(swatch.dataset.theme));
 });
 
-document.addEventListener('keydown', (e) => {
-  if (e.metaKey && e.key === 'n') {
+document.addEventListener("keydown", (e) => {
+  if (e.metaKey && e.key === "n") {
     e.preventDefault();
-    if (activeTab !== 'today') switchTab('today');
+    if (activeTab !== "today") switchTab("today");
     taskInput.focus();
   }
 });
